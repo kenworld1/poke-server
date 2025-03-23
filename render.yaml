@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: poke-server
+    name: poke-server-1
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn serveur:app
