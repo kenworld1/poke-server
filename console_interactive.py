@@ -1,57 +1,41 @@
 import requests
 
-BASE = "http://localhost:10000"
-history = []
+url_serveur = "http://127.0.0.1:10000"
 
-def list_clients():
-    r = requests.get(BASE + "/list_clients")
-    print("Clients connectes :")
-    for k, v in r.json().items():
-        print(f"{k} => {v}")
+print("Console Poke active. Tape 'help' pour la liste des commandes.")
+while True:
+    commande = input("> ")
 
-def poke(from_id, to_id):
-    r = requests.get(BASE + f"/poke/{from_id}/{to_id}")
-    print(r.text)
-
-def show_events():
-    r = requests.get(BASE + "/log")
-    print("\n".join(r.json()))
-
-def help():
-    print("Commandes disponibles :")
-    print(" clients               : liste les clients")
-    print(" poke [from] [to]      : poke vers un ID")
-    print(" events                : afficher les evenements")
-    print(" history               : historique local")
-    print(" help                  : aide")
-    print(" quit                  : quitter")
-
-def run():
-    print("Console Poke active. Tape 'help' pour la liste des commandes.")
-    while True:
-        try:
-            cmd = input("> ").strip()
-            if not cmd:
-                continue
-            history.append(cmd)
-            parts = cmd.split()
-            if parts[0] == "help":
-                help()
-            elif parts[0] == "clients":
-                list_clients()
-            elif parts[0] == "poke" and len(parts) == 3:
-                poke(parts[1], parts[2])
-            elif parts[0] == "events":
-                show_events()
-            elif parts[0] == "history":
-                print("\n".join(history))
-            elif parts[0] == "quit":
-                print("Bye.")
-                break
+    if commande == 'help':
+        print("""
+        Commandes disponibles :
+        clients              : liste les clients connectés
+        poke [from] [to]     : envoie un poke d'un ID vers un autre
+        quit                 : quitter
+        """)
+    elif commande == 'clients':
+        r = requests.get(url_serveur + "/clients")
+        if r.ok:
+            clients = r.json()
+            if clients:
+                print("Clients connectés :")
+                for id, ip in clients.items():
+                    print(f"ID={id} IP={ip}")
             else:
-                print("Commande inconnue.")
-        except Exception as e:
-            print("Erreur :", e)
+                print("Aucun client connecté.")
+        else:
+            print("Erreur récupération des clients.")
 
-if __name__ == "__main__":
-    run()
+    elif commande.startswith("poke"):
+        _, from_id, to_id = commande.split()
+        r = requests.post(url_serveur + "/poke", json={"from_id": from_id, "to_id": to_id})
+        if r.ok:
+            print(r.json()['status'])
+        else:
+            print("Erreur d'envoi du poke.")
+
+    elif commande == 'quit':
+        break
+
+    else:
+        print("Commande inconnue, tape 'help'.")
