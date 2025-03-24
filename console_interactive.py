@@ -1,6 +1,7 @@
 import requests
 
 BASE = "http://localhost:10000"
+history = []
 
 def list_clients():
     r = requests.get(BASE + "/list_clients")
@@ -12,27 +13,39 @@ def poke(from_id, to_id):
     r = requests.get(BASE + f"/poke/{from_id}/{to_id}")
     print(r.text)
 
+def show_events():
+    r = requests.get(BASE + "/log")
+    print("\n".join(r.json()))
+
 def help():
     print("Commandes disponibles :")
-    print(" clients              : liste tous les clients")
-    print(" poke [from] [to]     : poke un ID vers un autre")
-    print(" help                 : affiche cette aide")
-    print(" quit                 : quitter la console")
+    print(" clients               : liste les clients")
+    print(" poke [from] [to]      : poke vers un ID")
+    print(" events                : afficher les evenements")
+    print(" history               : historique local")
+    print(" help                  : aide")
+    print(" quit                  : quitter")
 
 def run():
     print("Console Poke active. Tape 'help' pour la liste des commandes.")
     while True:
         try:
-            cmd = input("> ").strip().split()
+            cmd = input("> ").strip()
             if not cmd:
                 continue
-            if cmd[0] == "help":
+            history.append(cmd)
+            parts = cmd.split()
+            if parts[0] == "help":
                 help()
-            elif cmd[0] == "clients":
+            elif parts[0] == "clients":
                 list_clients()
-            elif cmd[0] == "poke" and len(cmd) == 3:
-                poke(cmd[1], cmd[2])
-            elif cmd[0] == "quit":
+            elif parts[0] == "poke" and len(parts) == 3:
+                poke(parts[1], parts[2])
+            elif parts[0] == "events":
+                show_events()
+            elif parts[0] == "history":
+                print("\n".join(history))
+            elif parts[0] == "quit":
                 print("Bye.")
                 break
             else:
